@@ -4,8 +4,7 @@ import numpy as np
 from hanabi_learning_environment import pyhanabi_pybind as pyhanabi
 
 global colors
-#colors = ['R', 'Y', 'G', 'W', 'B']
-colors = ['R', 'Y']
+colors = ['R', 'Y', 'G', 'W', 'B']
 # ranks = [1,2,3,4,5]
 num_in_deck_by_rank = [3,2,2,2,1] # Note: rank is zero-based
 # game.NumberCardInstances
