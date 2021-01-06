@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../anaconda3/lib/python3.7/site-packages/hanabi_multiagent_framework"
+		},
+		{
+			"path": "../../../anaconda3/lib/python3.7/site-packages/hanabi_agents/rule_based"
+		},
+		{
+			"path": "../../../anaconda3/lib/python3.7/site-packages/hanabi_learning_environment"
+		}
+	],
+	"settings": {}
+}
