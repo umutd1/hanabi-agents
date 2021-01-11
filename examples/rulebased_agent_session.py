@@ -41,7 +41,7 @@ n_lives = 2
 n_hand_size = 5
 
 n_players = 2
-n_parallel = 10
+n_parallel = 100
 
 start_time = timeit.default_timer()
 
