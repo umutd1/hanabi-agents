@@ -219,11 +219,11 @@ class Ruleset():
   @staticmethod
   def osawa_discard(observation):
     #print(observation.information_tokens)
-    if observation.information_tokens == 8:
+    if observation.information_tokens == observation.parent_game.max_information_tokens:
       return None
     fireworks = observation.fireworks
     max_fireworks = get_max_fireworks(observation)
-    safe_to_discard = False
+    #safe_to_discard = False
     for card_index, card in enumerate(observation.hands[0].knowledge):
       #  color = card['color']
       #  rank = card['rank']

@@ -3,7 +3,7 @@ import random
 
 flawed_rules = [
     Ruleset.play_safe_card,
-    Ruleset.play_probably_safe_factory(0.25),
+    Ruleset.play_probably_safe_factory(0.25, True),
     Ruleset.tell_randomly,
     Ruleset.osawa_discard,
     Ruleset.discard_oldest_first,
@@ -65,6 +65,7 @@ all_rules = [
     
     #needs parameters:
     Ruleset.play_probably_safe_factory(0.6, True),
+    Ruleset.play_probably_safe_factory(0.7, True),
     #Ruleset.discard_probably_useless_factory(0.75),
 
     Ruleset.hail_mary
@@ -85,7 +86,7 @@ umuts_rules = [
 
 
 
-def random_rules(num_rules = 5):
+def random_rules(num_rules = 10):
     rules = random.sample(all_rules, num_rules)
     rules.append(Ruleset.legal_random) 
     return rules

@@ -6,25 +6,27 @@ import random
 class Evolution:
 
 
-    def __init__(self, current_population, scores, rule_size = 10, elite_count = 10,
+    def __init__(self, current_population, scores, elite_count = 10,
                     mutation_rate = 0.1, tournament_size = 1):
         
         self.current_population = current_population
         self.scores = np.array(scores)
         self.population_size = len(current_population)
-        self.rule_size = rule_size
+        self.rule_size = len(current_population[0])
+        print("Rule size: " + str(self.rule_size))
         self.mutation_rate = mutation_rate
         self.tournament_size = tournament_size
         self.crossover_count = len(current_population) - elite_count
         self.elite_count = elite_count
         self.next_generation = []
+    
     #Evolution steps:
     #1 - Taking elites directly to next generation
-    #2 - Tournament selection + crossover
-    #3 - Crossover including tournament winnders and elites
+    #2 - Selection for crossover
+    #3 - Crossover
     #4 - Mutation
+    #5 - Optional: Implementing Threshhold for saving good agents
 
-    
     #currently random selection
     def crossover_selection(self):
         population_random = self.current_population.copy()
@@ -37,6 +39,7 @@ class Evolution:
             random_index = random.randrange(0, len(crossover_list))
             while random_index == i:
                 random_index = random.randrange(0, len(crossover_list))
+                print("Random index is same")
             for k in range(self.rule_size):
                 roll = random.randint(0,1)
                 if roll == 0:
@@ -56,22 +59,25 @@ class Evolution:
         
         #2
         crossover_list = self.crossover_selection()
+        print(crossover_list)
         #print(crossover_list)
 
         #3
         self.crossover(crossover_list, self.next_generation)
         print("Next generation: " + str(self.next_generation))
 
-test_pop = []
-scores = []
-for i in range(20):
-    random_agent = [random.randint(0,9),random.randint(10,19),random.randint(20,30)]
-    test_pop.append(random_agent)
-    scores.append(i)
-print("original: " + str(test_pop))
-print("scores:" + str(scores))
-test_evo = Evolution(test_pop, scores, 1)
-test_evo.evolve()
+if __name__ == "__main__":
+
+    test_pop = []
+    scores = []
+    for i in range(20):
+        random_agent = [random.randint(0,9),random.randint(10,19),random.randint(20,30), 250]
+        test_pop.append(random_agent)
+        scores.append(i)
+    print("original: " + str(test_pop))
+    print("scores:" + str(scores))
+    test_evo = Evolution(test_pop, scores, 1)
+    test_evo.evolve()
         
 
 
