@@ -29,8 +29,9 @@ outer_rules = [
 
 piers_rules = [
     Ruleset.hail_mary,
-    Ruleset.play_safe_card,
-    Ruleset.play_probably_safe_factory(0.6, True),
+    #Ruleset.play_safe_card,
+    Ruleset.play_probably_safe_factory(0.9999, False),
+    Ruleset.play_probably_safe_factory(0.8, True),
     Ruleset.tell_anyone_useful_card,
     Ruleset.tell_dispensable_factory(3),
     Ruleset.osawa_discard,
@@ -47,14 +48,14 @@ all_rules = [
     #Ruleset.tell_unknown,
     
     Ruleset.tell_randomly,
-    Ruleset.play_safe_card,
-    Ruleset.play_if_certain,
+    #Ruleset.play_safe_card,
+    #Ruleset.play_if_certain,
     Ruleset.tell_playable_card_outer,
     Ruleset.tell_dispensable_factory(3),
     Ruleset.tell_anyone_useful_card,
     
-    #todo: card index ????
-    #Ruleset.tell_anyone_useless_card,
+    #todo: test
+    Ruleset.tell_anyone_useless_card,
     
     #todo:
     #Ruleset.tell_most_information,
@@ -72,17 +73,29 @@ all_rules = [
 
 ]
 
-umuts_rules = [
-    Ruleset.play_if_certain,
-    Ruleset.play_safe_card,
-    Ruleset.play_probably_safe_factory(0.8, True),
-    Ruleset.hail_mary,
+small_rules = [
+    Ruleset.play_probably_safe_factory(0.9999, False),
     Ruleset.tell_playable_card_outer,
+    Ruleset.tell_dispensable_factory(3),
+    Ruleset.tell_randomly,
     Ruleset.osawa_discard,
-    #Ruleset.tell_dispensable_factory(3),
-    Ruleset.discard_randomly
-
+    Ruleset.discard_oldest_first
 ]
+
+test_rules = [    
+    Ruleset.play_probably_safe_factory(0.99,False),
+    #Ruleset.tell_unknown,    
+    #todo: test
+    #Ruleset.tell_anyone_useless_card,
+    #todo:
+    #Ruleset.tell_most_information,
+    Ruleset.tell_playable_card,    
+    Ruleset.discard_probably_useless_factory(0.75),
+    Ruleset.tell_randomly,
+    Ruleset.discard_oldest_first,
+    Ruleset.legal_random
+]
+
 
 
 

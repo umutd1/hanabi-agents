@@ -7,7 +7,6 @@ global colors
 colors = ['R', 'Y', 'G', 'W', 'B']
 # ranks = [1,2,3,4,5]
 num_in_deck_by_rank = [3,2,2,2,1] # Note: rank is zero-based
-# game.NumberCardInstances
 
 
 # Note: depending on the object calling, card could either be a dict eg {'color':'R','rank':0} or a HanabiCard instance with c.color and c.rank methods
@@ -32,12 +31,11 @@ def playable_card(card, fireworks, n_colors):
   else:
       return card.rank == fireworks[card.color]
 
+# card is not playable
 def useless_card(card,fireworks,max_fireworks):
-  if isinstance(card,pyhanabi.HanabiCard):
-    card = {'color':colors[card.color],'rank':card.rank}
-  if card['rank'] < fireworks[card['color']]:
+  if card.rank <= fireworks[card.color]:
     return True
-  if card['rank'] >= max_fireworks[card['color']]:
+  if card.rank >= max_fireworks[card.color]:
     return True
   return False
 
@@ -81,8 +79,6 @@ def get_visible_cards(observation, player_offset):
 
 def get_card_playability(observation, player_offset=0):
   visible_cards = get_visible_cards(observation, player_offset)
-  # print(observation)
-  # print(visible_cards)
   my_hand_size = len(observation.hands[player_offset])
   playability_array = np.zeros(my_hand_size)
   for hand_index in range(my_hand_size):
@@ -92,11 +88,6 @@ def get_card_playability(observation, player_offset=0):
     for plausible in plausible_cards:
       num_in_deck = observation.parent_game.number_card_instances(plausible)
       for visible in visible_cards:
-        # print(str(plausible) + " " + str(visible))
-        # print(visible['color'])
-        # print(plausible.color)
-        # print(visible['rank'])
-        # print(plausible.rank)
         if visible.color == plausible.color and visible.rank == plausible.rank:
           num_in_deck -= 1
       total_possibilities += num_in_deck
@@ -118,16 +109,11 @@ def get_card_playability(observation, player_offset=0):
       # for player in range(1,observation['num_players']):
       #   if player!= player_offset:
 
-
-
-  # print (observation['pyhanabi'].card_knowledge)
-  # print(player_hints)
   return playability_array
 
 def get_probability_useless(observation, player_offset=0):
   visible_cards = get_visible_cards(observation,player_offset)
-  # print(observation)
-  my_hand_size = len(observation['observed_hands'][player_offset])
+  my_hand_size = len(observation.hands[player_offset])
   probability_useless = np.zeros(my_hand_size)
   max_fireworks = get_max_fireworks(observation)
   for hand_index in range (my_hand_size):
@@ -137,15 +123,11 @@ def get_probability_useless(observation, player_offset=0):
     for plausible in plausible_cards:
       num_in_deck = num_in_deck_by_rank[plausible.rank]
       for visible in visible_cards:
-        # print(str(plausible) + " " + str(visible))
-        # print(visible['color'])
-        # print(plausible.color)
-        # print(visible['rank'])
-        # print(plausible.rank)
-        if visible['color'] == colors[plausible.color] and visible['rank'] == plausible.rank:
+        #if visible['color'] == colors[plausible.color] and visible['rank'] == plausible.rank:
+        if visible.color == plausible.color and visible.rank == plausible.rank:
           num_in_deck -=1
       total_possibilities += num_in_deck
-      if useless_card(plausible,observation['fireworks'],max_fireworks):
+      if useless_card(plausible, observation.fireworks ,max_fireworks):
         useless_possibilities += num_in_deck
     probability_useless[hand_index] = useless_possibilities/total_possibilities
     
@@ -190,21 +172,16 @@ def get_max_fireworks(observation):
     if number_in_discard >= num_in_deck_by_rank[card.rank]:
       if max_fireworks[card.color] >= card.rank:
         max_fireworks[card.color] = card.rank
+  #print(type(max_fireworks))
   return max_fireworks
 
-  #   print(label)
-  #   print(card)
-  # for color in colors:
-  #   current_value = fireworks[color]
-  #   print(current_value)
-  #   max_possible = 5
 
 class Ruleset():
 
 
   @staticmethod
   def discard_oldest_first(observation):
-    if observation.information_tokens < 8:
+    if observation.information_tokens < observation.parent_game.max_information_tokens:
       return pyhanabi.HanabiMove(
               pyhanabi.HanabiMove.Type.kDiscard,
               0, # card index
@@ -527,12 +504,10 @@ class Ruleset():
     if observation.information_tokens > 1:
       max_fireworks = get_max_fireworks(observation)
       for player_offset in range(1, observation.parent_game.num_players):
-        player_hand = observation.hands['player_offset']
-        player_hints = observation['card_knowledge'][player_offset]
-        for card_index, (card, hint) in enumerate(zip(player_hand, player_hints)):
-        #for card, hint in zip(player_hand, player_hints):
+        player_hand = observation.hands[player_offset]
+        for card_index, (card, hint) in enumerate(zip(player_hand.cards, player_hand.knowledge)):
           if useless_card(card,fireworks,max_fireworks):
-            if hint['color'] is None:
+            if hint.color_hinted() is None:
               return pyhanabi.HanabiMove(
                       pyhanabi.HanabiMove.Type.kRevealColor,
                       card_index,
@@ -541,7 +516,7 @@ class Ruleset():
                       pyhanabi.HanabiCard.RankType.kUnknownRank
                   )              
               #return {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
-            if hint['rank'] is None:
+            if hint.rank_hinted() is None:
               return pyhanabi.HanabiMove(
                       pyhanabi.HanabiMove.Type.kRevealRank,
                       card_index,
@@ -555,13 +530,13 @@ class Ruleset():
   # Note: this follows the version of the rule that's used on VanDenBergh, which does not take into account whether or not they already know that information
   @staticmethod
   def tell_most_information(observation):
-    fireworks = observation['fireworks']
-    if observation['information_tokens']>1:
+    fireworks = observation.fireworks
+    if observation.information_tokens > 1:
       max_fireworks = get_max_fireworks(observation)
       max_affected = -1
       best_action = None
       for player_offset in range(1, observation['num_players']):
-        player_hand = observation['observed_hands'][player_offset]
+        player_hand = observation.hands[player_offset]
         player_hints = observation['card_knowledge'][player_offset]
         for card, hint in zip(player_hand, player_hints):
           affected_colors = 0
@@ -581,34 +556,56 @@ class Ruleset():
 
 
 
-
-
-  #Does not take into account what information the other player has into account, and decides whether to hint rank or color randomly
+  #tells rank or color at random if tell_rank is unspecified, tells rank if set to 1, color if set to 0.
   @staticmethod
-  def tell_playable_card(observation):
-    fireworks = observation['fireworks']
+  def tell_playable_card(observation, tell_rank = random.randint(0,1)):
+    fireworks = observation.fireworks
 
     # Check if it's possible to hint a card to your colleagues.
-    if observation['information_tokens'] > 0:
+    if observation.information_tokens > 0:
       # Check if there are any playable cards in the hands of the opponents.
-      for player_offset in range(1, observation['num_players']):
-        player_hand = observation['observed_hands'][player_offset]
+      for player_offset in range(1, observation.parent_game.num_players):
+        player_hand = observation.hands[player_offset]
         # Check if the card in the hand of the opponent is playable.
-        for card in player_hand:
+        for card_index, (card, hint) in enumerate(zip(player_hand.cards, player_hand.knowledge)):
           if playable_card(card, fireworks, observation.parent_game.num_colors):
-            r = random.randint(0,1)
-            if (r == 0):
-              return {
-               'action_type': 'REVEAL_RANK',
-               'rank': card['rank'],
-               'target_offset': player_offset
-              }
-            else:
-              return {
-               'action_type': 'REVEAL_COLOR',
-               'color': card['color'],
-               'target_offset': player_offset
-              }
+            if (tell_rank and not hint.rank_hinted()):
+              #print("fireworks:", fireworks)
+              #print("telling: ", card)
+              return pyhanabi.HanabiMove(
+                      pyhanabi.HanabiMove.Type.kRevealRank,
+                      card_index,
+                      player_offset,
+                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                      card.rank
+                  )
+              
+              
+              #{ 'action_type': 'REVEAL_RANK', 'rank': card['rank'],'target_offset': player_offset}
+            elif (not hint.color_hinted()):
+              #print("fireworks: ",fireworks)
+              #print("telling: ", card)
+              return pyhanabi.HanabiMove(
+                        pyhanabi.HanabiMove.Type.kRevealColor,
+                        card_index,
+                        player_offset,
+                        card.color,
+                        pyhanabi.HanabiCard.RankType.kUnknownRank
+                  ) 
+              
+              #{'action_type': 'REVEAL_COLOR','color': card['color'],'target_offset': player_offset}
+            
+            #if you wan to tell the color but already now the color you tell the rank instead
+            elif(not hint.rank_hinted()):
+              #print("fireworks: ", fireworks)
+              #print("telling: ", card)
+              return pyhanabi.HanabiMove(
+                      pyhanabi.HanabiMove.Type.kRevealRank,
+                      card_index,
+                      player_offset,
+                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                      card.rank
+                  )
     return None
 
 
@@ -643,8 +640,9 @@ class Ruleset():
   @staticmethod
   def play_probably_safe_factory(treshold = 0.95, require_extra_lives = False):
     def play_probably_safe_treshold(observation):
-      playability_vector = get_card_playability(observation)
+      playability_vector = observation.playable_percent()
       card_index = np.argmax(playability_vector)
+      #print(playability_vector)
       if not require_extra_lives or observation.life_tokens >1:
         if playability_vector[card_index]>=treshold:
           action = pyhanabi.HanabiMove(
@@ -664,7 +662,7 @@ class Ruleset():
   @staticmethod
   def discard_probably_useless_factory(treshold = 0.75):
     def play_probably_useless_treshold(observation):
-      if observation.information_tokens < 8: 
+      if observation.information_tokens < observation.parent_game.max_information_tokens: 
         probability_useless = get_probability_useless(observation)
         # print("probability useless" +str(probability_useless))
         card_index = np.argmax(probability_useless)

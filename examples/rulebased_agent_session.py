@@ -12,7 +12,7 @@ from hanabi_agents.rule_based.ruleset import Ruleset
 from evolve import Evolution
 import timeit
 
-def make_hanabi_env_config_custom(environment_name="Hanabi-Full", players=2, colors=5, ranks=5, hand_size=5, tokens=8, life=3):
+def make_hanabi_env_config_custom(environment_name="Hanabi-Custom",players=2, colors=5, ranks=5, hand_size=5, tokens=8, life=3):
     if environment_name in ["Hanabi-Full", "Hanabi-Full-CardKnowledge"]:
         config = {
             "colors":
@@ -36,12 +36,12 @@ def make_hanabi_env_config_custom(environment_name="Hanabi-Full", players=2, col
 
 n_colors = 2
 n_ranks = 5
-n_tokens = 5
+n_tokens = 3
 n_lives = 2
-n_hand_size = 5
+n_hand_size = 3
 
 n_players = 2
-n_parallel = 100
+n_parallel = 1
 
 start_time = timeit.default_timer()
 
@@ -56,25 +56,30 @@ env = hmf.HanabiParallelEnvironment(env_conf, n_parallel)
 #agents_2 = [RulebasedAgent(rules.piers_rules) for _ in range(n_players)]
 
 n_agents = 2
-population_size = 4
+population_size = 2
 
-
+# number of generations
 for i in range(1):
-    my_rules = [rules.flawed_rules for _ in range(population_size)]
-    my_rules.append(rules.piers_rules)
+    my_rules = [rules.piers_rules for _ in range(population_size-1)]
+    #my_rules.insert(0, rules.piers_rules)
+    #my_rules2 = [rules.piers_rules]
+    scores = []
 
-    my_rules2 = [rules.piers_rules]
-    #print(my_rules)
-    #print(len(my_rules))
-    #agents = [ParallelRulebasedAgent(my_rules, n_agents) for _ in range(n_players)]
-    agents = [ParallelRulebasedAgent(my_rules), ParallelRulebasedAgent(my_rules2)]
-    parallel_session = hmf.HanabiParallelSession(env, agents)
-
-    print("Game config", env.game_config)
-    result = parallel_session.run_eval(dest = None, print_intermediate = False )
-    print(result)
-
-    #scores = [10,2,3,5]
+    #agent plays against all the other agents n_parallel times / population_size
+    #for k in range(len(my_rules)):
+    for k in range(1):
+        #agents = [ParallelRulebasedAgent([my_rules[k]]), ParallelRulebasedAgent(my_rules)]
+        agents = [ParallelRulebasedAgent([rules.test_rules]), ParallelRulebasedAgent([rules.piers_rules])]
+        parallel_session = hmf.HanabiParallelSession(env, agents)
+        #print("Game config", env.game_config)
+        result = parallel_session.run_eval(dest = None, print_intermediate = False )
+        print(result)
+        #print("Average: ", result.mean())
+        scores.append(result.mean())
+   
+    print(agents[0].rule_times, agents[0].total_time)
+    print(agents[1].rule_times, agents[1].total_time)
+    print(scores)
     #evolution_config = Evolution(my_rules, scores, elite_count = 1)
     #evolution_config.evolve()
     
