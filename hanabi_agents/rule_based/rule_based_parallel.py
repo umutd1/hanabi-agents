@@ -7,7 +7,7 @@ import timeit
 
 class ParallelRulebasedAgent():
 
-    def __init__(self, rules, parallel_agents = False ):
+    def __init__(self, rules):
         #print("Initializing agent")
         self.rules = rules
         #print("nr rules: " + str(len(rules)))
@@ -61,7 +61,7 @@ class ParallelRulebasedAgent():
                     return action
             #self.histogram[-1] += 1
             self.totalCalls += 1
-            print("random rule exception")
+            #print("random rule exception")
             return Ruleset.legal_random(observation)
         return None
 

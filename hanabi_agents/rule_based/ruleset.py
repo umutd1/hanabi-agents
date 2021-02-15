@@ -530,29 +530,46 @@ class Ruleset():
   # Note: this follows the version of the rule that's used on VanDenBergh, which does not take into account whether or not they already know that information
   @staticmethod
   def tell_most_information(observation):
-    fireworks = observation.fireworks
-    if observation.information_tokens > 1:
-      max_fireworks = get_max_fireworks(observation)
+    #fireworks = observation.fireworks
+    best_action = None
+    if observation.information_tokens >= 1:
+      #max_fireworks = get_max_fireworks(observation)
       max_affected = -1
-      best_action = None
-      for player_offset in range(1, observation['num_players']):
+      for player_offset in range(1, observation.parent_game.num_players):
         player_hand = observation.hands[player_offset]
-        player_hints = observation['card_knowledge'][player_offset]
-        for card, hint in zip(player_hand, player_hints):
+        #print("cards: ", player_hand.cards)
+        #print("knowledge: ", player_hand.knowledge)
+        for card_index, (card, hint) in enumerate(zip(player_hand.cards, player_hand.knowledge)):
           affected_colors = 0
           affected_ranks = 0
-          for other_card in player_hand:
-            if card['color'] == other_card['color']:
+          for other_card, other_hint in zip(player_hand.cards, player_hand.knowledge):
+            if card.color == other_card.color and not other_hint.color_hinted():
               affected_colors+=1
-            if card['rank']  == other_card['rank']:
+            if card.rank  == other_card.rank and not other_hint.rank_hinted():
               affected_ranks+=1
           if affected_colors > max_affected:
             max_affected = affected_colors
-            best_action = {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
+            #best_action = {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
+            best_action = pyhanabi.HanabiMove(
+                      pyhanabi.HanabiMove.Type.kRevealColor,
+                      card_index,
+                      player_offset,
+                      card.color,
+                      pyhanabi.HanabiCard.RankType.kUnknownRank
+                  )  
           if affected_ranks > max_affected:
             max_affected = affected_ranks
-            best_action = {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
-    return None
+            #best_action = {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
+            best_action = pyhanabi.HanabiMove(
+                      pyhanabi.HanabiMove.Type.kRevealRank,
+                      card_index,
+                      player_offset,
+                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                      pyhanabi.HanabiCard.RankType(card.rank)
+                  )
+    #print(best_action)
+    #print("")
+    return best_action
 
 
 
@@ -641,6 +658,8 @@ class Ruleset():
   def play_probably_safe_factory(treshold = 0.95, require_extra_lives = False):
     def play_probably_safe_treshold(observation):
       playability_vector = observation.playable_percent()
+      #print("old, ", get_card_playability(observation) )
+      #print("new, ", playability_vector)
       card_index = np.argmax(playability_vector)
       #print(playability_vector)
       if not require_extra_lives or observation.life_tokens >1:
@@ -663,7 +682,17 @@ class Ruleset():
   def discard_probably_useless_factory(treshold = 0.75):
     def play_probably_useless_treshold(observation):
       if observation.information_tokens < observation.parent_game.max_information_tokens: 
-        probability_useless = get_probability_useless(observation)
+        #probability_useless_old = get_probability_useless(observation)
+        #print("player offset: ", observation.current_player_offset)
+        #print("old: ",probability_useless)
+        probability_useless = observation.discardable_percent()
+        #print("new: ", probability_useless2)
+        #print("colors: ", colors)
+        #print("max_fireworks: ", list(get_max_fireworks(observation).values()))
+        #print("fireworks: ", observation.fireworks)
+        #print("hand: ", observation.hands[0].knowledge)
+        #print("")
+
         # print("probability useless" +str(probability_useless))
         card_index = np.argmax(probability_useless)
         if probability_useless[card_index]>=treshold:
