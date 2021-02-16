@@ -50,7 +50,7 @@ class Evolution:
             agent_list.append(new_agent)
 
     def mutate(self):
-        ruleset = rules.all_rules
+        ruleset = rules.big_ruleset
         for i in range(self.elite_count, self.population_size):
             for k in range(len(self.next_population[i])):
                 roll_mutation = random.random()
