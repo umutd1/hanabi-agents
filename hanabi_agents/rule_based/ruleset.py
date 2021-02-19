@@ -198,6 +198,8 @@ class Ruleset():
     #print(observation.information_tokens)
     if observation.information_tokens == observation.parent_game.max_information_tokens:
       return None
+    if observation.information_tokens == 0:
+      return None
     fireworks = observation.fireworks
     max_fireworks = get_max_fireworks(observation)
     #safe_to_discard = False
@@ -205,7 +207,7 @@ class Ruleset():
       #  color = card['color']
       #  rank = card['rank']
       if card.color is not None:
-        if fireworks[card.color] == 5:
+        if fireworks[card.color] == observation.parent_game.num_ranks:
           return pyhanabi.HanabiMove(
                   pyhanabi.HanabiMove.Type.kDiscard,
                   card_index,
