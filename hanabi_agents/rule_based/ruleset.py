@@ -450,7 +450,7 @@ class Ruleset():
               #  known_color = hint['color']
               #  known_rank = hint['rank']
               #  if known_color is None and fireworks[color] == 5:
-              if not hint.color_hinted() and fireworks[card.color] == 5:
+              if not hint.color_hinted() and fireworks[card.color] == observation.parent_game.num_ranks:
 
                 return pyhanabi.HanabiMove(
                         pyhanabi.HanabiMove.Type.kRevealColor,
