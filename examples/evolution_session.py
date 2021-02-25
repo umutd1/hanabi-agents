@@ -14,8 +14,10 @@ import statistics
 start_time = timeit.default_timer()
 
 n_players = 2
-n_parallel = 10 # n_paralllel / population size = games played by each agent against all the other agents
-population_size = 10
+n_parallel = 500_000 # n_paralllel / population size = games played by each agent against all the other agents
+population_size = 100
+n_generations = 50
+
 n_rules = 20
 elite_count = 3
 
@@ -32,7 +34,7 @@ my_rules = [rules.random_rules(n_rules) for _ in range(population_size)]
 #    f.write(str(my_rules))
 
 # number of generations
-for i in range(10):
+for i in range(n_generations):
     scores = []
     
     #with open("agents.txt", "r") as agents_file:
