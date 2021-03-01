@@ -24,14 +24,14 @@ import math
 import tracemalloc
 
 # Pickle Target
-target = 'Experiments/performance.pickle'
+target = 'Experiments/Performance_Tests/worker_1_performance.pickle'
 
 # HyperParameters
 n_players = 2
 population_size = 20
 n_generations = 2               
 n_rules = 20
-elite_count = int(0.8 * population_size)
+elite_count = int(0.2 * population_size)
 
 n_parallel = population_size * population_size            # Starting value of parallel games to b played per generation
 # Max_Parallel = 40_000         # Maximum value of parallel games to be played per generation 
