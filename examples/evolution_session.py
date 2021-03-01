@@ -14,14 +14,12 @@ import statistics
 start_time = timeit.default_timer()
 
 n_players = 2
-n_parallel = 500_000 # n_paralllel / population size = games played by each agent against all the other agents
-population_size = 100
+population_size = 10
+n_parallel = 10 # n_paralllel / population size = games played by each agent against all the other agents
 n_generations = 50
 
 n_rules = 20
-elite_count = 3
-
-
+elite_count = int(0.2*population_size)
 
 env_conf = make_hanabi_env_config('Hanabi-Full', n_players)
 
