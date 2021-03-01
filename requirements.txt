@@ -1,0 +1,6 @@
+chex==0.0.2
+dm-haiku==0.0.2
+jax==0.2.5
+jaxlib==0.1.55
+optax==0.0.1
+rlax==0.0.2
