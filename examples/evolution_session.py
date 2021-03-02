@@ -13,15 +13,15 @@ import statistics
 import dill as pickle
 
 ## Target for the pickle file
-target = 'Experiments/1000_parallel/agent_checkpoint_Mar_2.pickle'
+target = 'Experiments/agent_checkpoint}_populatation_20.pickle'
 
 load_pickled = False
 
 start_time = timeit.default_timer()
 
 n_players = 2
-population_size = 10
-n_generations = 50     
+population_size = 20
+n_generations = 100     
 n_rules = 20      # Each agent is a list of these many rules
 elite_count = int(0.2 * population_size)            # We take 20% of the agents with the best score and retain them 
 
@@ -77,7 +77,7 @@ for i in range(n_generations):
         #print("Average: ", result.mean())
         scores.append(result.mean())
 
-    print("Gen:". i+1 , "Max:", max(scores), "Avg:", statistics.mean(scores) , "List:", scores)
+    print("Gen:", i+1 , "Max:", max(scores), "Avg:", statistics.mean(scores) , "List:", scores)
     evolution_config = Evolution(my_rules, scores, elite_count)
     
     my_rules = evolution_config.evolve()
