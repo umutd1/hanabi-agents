@@ -30,7 +30,7 @@ elite_count = int(0.2 * population_size)            # We take 20% of the agents 
     So, Population * population is one game for each against every other agent and then we multiply 
     it by 10 make it 10 games per agent against every other agent
 '''
-n_parallel = population_size * population_size * 10
+n_parallel = population_size * 10
 
 # Initialize the environment
 env_conf = make_hanabi_env_config('Hanabi-Full', n_players)
