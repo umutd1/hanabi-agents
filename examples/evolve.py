@@ -1,17 +1,19 @@
 import numpy as np
 import random
 import hanabi_agents.rule_based.predefined_rules as rules
-
+import math
 #Class for evolving
 
 class Evolution:
 
 
     def __init__(self, current_population, scores, elite_count = 10,
-                    mutation_rate = 0.1, tournament_size = 1):
+                    mutation_rate = 0.1, tournament_size = 1, balance_ratio = 0.6 ):
         
-        self.current_population = current_population
+        self.balance_ratio = balance_ratio
+        self.current_population = np.array(current_population)
         self.scores = np.array(scores)
+        self.Entropies = self.Intra_Agent_Entropy(np.array(current_population))
         self.population_size = len(current_population)
         self.rule_size = len(current_population[0])
         #print("Rule size: " + str(self.rule_size))
@@ -58,24 +60,80 @@ class Evolution:
                     #print("Mutation...")
                     roll_swap = random.randint(0,len(ruleset)-1)
                     self.next_population[i][k] = ruleset[roll_swap]
-            
 
+    def Intra_Agent_Entropy(self, my_rules):
 
+        # Get the all the unique rule names
+        my_rules = np.array(my_rules)
+
+        rule_names = []
+        for i in range(my_rules.shape[0]):
+            for j in range(my_rules.shape[1]):
+                rule_names.append(my_rules[i, j].__name__)
+
+        rule_names = np.unique(rule_names)
+        
+        # Create a dictionary of the maximal set of all therules in the ruleset
+        names_dict = {}
+        for i in rule_names:
+            names_dict[i] = 1e-6
+
+        #Copy this maximal dictionary for all agents
+        agent_rules = []
+        for _ in range(my_rules.shape[0]):
+            agent_rules.append(names_dict.copy())
+
+        agent_rules = np.array(agent_rules)
+
+        # Update the frequency of rules in each agent
+        for i in range(my_rules.shape[0]):
+            rule_list = my_rules[i]
+            agent = agent_rules[i]
+            for rule in rule_list:
+                if agent[rule.__name__] == 1e-6:
+                    agent[rule.__name__] = 1
+
+                else:
+                    agent[rule.__name__] += 1
+
+        # Normalize to get the Frequentist probability
+        agent_probs = []
+
+        for agent in agent_rules:
+            agent_probs.append(agent.copy())
+
+        for agent in agent_probs:
+            for rule in agent.keys():
+                agent[rule] = agent[rule] / my_rules.shape[1]
+
+        # Calculate Entropy based on probabilities
+        Entropies = []
+        for agent in agent_probs:
+            E = 0
+            for rules in agent.keys():
+                E += - agent[rule] * math.log(agent[rule])
+
+            Entropies.append(E)
+
+        Entropies = np.array(Entropies)
+
+        return Entropies
             
 
     def evolve(self):
-        #1 - elites
-        index_elites = (-self.scores).argsort()[:self.elite_count]
-        #print(index_elites)
+        
+        #1 - elites -> Retain the top agents on a mixture of top scores and most diverse
+
+        fitness = self.balance_ratio * self.scores + (1 - self.balance_ratio) * self.Entropies
+        index_elites = np.argsort(fitness)[-self.elite_count:]
+        
         for i in index_elites:
             self.next_population.append(self.current_population[i])
         #print(self.next_generation)
         
         #2 - crossover_selection
         crossover_list = self.crossover_selection()
-        #print(crossover_list)
-        #print(crossover_list)
-
+        
         #3 - crossover
         self.crossover(crossover_list, self.next_population)
         #4 - mutation
