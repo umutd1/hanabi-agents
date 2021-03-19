@@ -162,4 +162,4 @@ test_rules = [
 def random_rules(num_rules = 10, used_ruleset = big_ruleset):
     rules = random.sample(used_ruleset, num_rules)
     #rules.append(Ruleset.legal_random) 
-    return rules
+    return (rules, used_ruleset)

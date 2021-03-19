@@ -7,23 +7,28 @@ import timeit
 
 class ParallelRulebasedAgent():
 
-    def __init__(self, rules):
+    def __init__(self, rules, n_observations = 100):
         #print("Initializing agent")
         self.rules = rules
         #print("nr rules: " + str(len(rules)))
         self.totalCalls = 0
         self.histogram = [0 for i in range(len(rules)+1)]
-        
+
         self.n_agents = len(rules)
         self.agent_turn = -1
 
         self.agent_id = random.randint(0,100)
         self.total_moves = 0
+        
+        self.n_observations = n_observations
+        self.obs_counter = 0
 
         self.rule_times =[]
         for i in range(self.n_agents):
             self.rule_times.append([])
+            #print("agent nr:", i)
             for k in range(len(rules[i])):
+                #print(rules[i][k].__name__)
                 self.rule_times[i].append([rules[i][k].__name__ ,0,0])
             #print(len(rules[i]))
 
@@ -36,7 +41,10 @@ class ParallelRulebasedAgent():
         #    self.agent_turn = 0
 
     def next_agent(self):
-        self.agent_turn = (self.agent_turn +1) % self.n_agents
+        #self.agent_turn = (self.agent_turn +1) % self.n_agents
+        self.agent_turn = int((self.n_agents / self.n_observations) * self.obs_counter)
+        self.obs_counter += 1
+
 
 
     def get_move(self, observation):
@@ -67,9 +75,15 @@ class ParallelRulebasedAgent():
 
     def explore(self, observations):
         actions = pyhanabi.HanabiMoveVector()
-        #print("Current agent:" + str(self.agent_id))
+        #print("Current agent:" + str(self.agent_id)
+        #print(observations.scores)
+        #observations_py =  []
+        self.obs_counter = 0
         for observation in observations:
+            #print(observation)
             actions.append(self.get_move(observation))
+            #observations_py.append(observation)
+        #print(len(observations_py))
         #moves = list(map(self.get_move, observations))
         #actions.append(moves)
         #print(self.rule_times)
@@ -91,5 +105,3 @@ class ParallelRulebasedAgent():
 
     def update(self):
         pass
-
-
