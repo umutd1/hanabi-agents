@@ -21,8 +21,8 @@ def session(
     n_rules=20,
     elite_percentage=0.3,
     n_games_per_pair=10,
-    top_x=0.1,
-    alpha=0.3, 
+    top_x=0.2,
+    alpha=0.1, 
     agent = None,
     rulebase=rules.big_ruleset,
     target = None
@@ -111,6 +111,7 @@ def session(
             mutation_rate=0.1,
             tournament_size=1,
             rulebase = rulebase,
+            alpha = alpha,
             top_x=top_x
         )
         my_rules, fitness, diversity = evolution_config.evolve()
@@ -182,8 +183,8 @@ def main (args):
         n_rules=args.n_rules,
         elite_percentage=args.elite_percentage,
         n_games_per_pair=args.n_games_per_pair,
-        top_x=0.2,
-        alpha=0.3,
+        top_x=args.top_x,
+        alpha=args.alpha ,
         agent=agent,
         rulebase = rulebase,
         target = args.output_file
@@ -258,15 +259,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--alpha',
         type=float,
-        default=0.01,
+        default=0.1,
         help="Importance of Diversity in Performance Calculation"
-    )
-
-    parser.add_argument(
-        '--beta',
-        type=float,
-        default=0.2,
-        help="Importance of performance in fitness Calculation"
     )
 
     parser.add_argument(

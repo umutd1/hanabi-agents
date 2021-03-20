@@ -14,14 +14,12 @@ class Evolution:
                 elite_count = 3,
                 mutation_rate = 0.1, 
                 tournament_size = 1, 
-                alpha = 0.01,
-                beta = 0.2,  
-                top_x = 0.1 
+                alpha = 0.1,
+                top_x = 0.2 
                 ):
         
         self.top_x = top_x
         self.alpha = alpha
-        self.beta = beta
         self.current_population = np.array(current_population)
         self.scores = scores
         self.rulebase = rulebase
@@ -78,6 +76,8 @@ class Evolution:
 
         performances = np.zeros((self.scores.shape[0], self.scores.shape[1]))
 
+        D_list = np.zeros((self.scores.shape[0], self.scores.shape[1]))
+
         Diversities = np.zeros((self.scores.shape[0]))
 
         for i in range(self.scores.shape[0]):
@@ -93,9 +93,9 @@ class Evolution:
                 diversity[j] = div
                 
                 d_i_j = self.scores[i, j] + self.alpha * div 
-                performances[i, j] = self.beta * d_i_j
+                performances[i, j] = d_i_j
 
-            
+
             Diversities[i] =  np.mean(diversity)
 
         top_count = int(self.top_x * performances.shape[1])
