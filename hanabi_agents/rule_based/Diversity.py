@@ -41,11 +41,16 @@ class Diversity():
         for rule in B: 
             index = np.where(axes == rule.__name__ )
             B_[index] += 1
+        
+        # A_ = A_ / np.linalg.norm(A_)
+        # B_ = B_ / np.linalg.norm(B_)
 
-        # Calculate the Norm between the two points in this space
-        distance = np.linalg.norm(A_ - B_)
+        # # Calculate the Norm between the two points in this space
+        # norm_ = np.linalg.norm(A_ - B_)
 
-        return (distance)
+        norm_ = 1 - (A_ @ B_) / (np.linalg.norm(A_) * np.linalg.norm(B_))
+
+        return (norm_)
 
     @staticmethod
     def Name_similarity(A, B):

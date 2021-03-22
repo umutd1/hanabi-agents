@@ -23,6 +23,7 @@ def session(
     n_games_per_pair=10,
     top_x=0.2,
     alpha=0.1, 
+    mutation_rate = 0.1,
     agent = None,
     rulebase=rules.big_ruleset,
     target = None
@@ -108,10 +109,10 @@ def session(
             current_population=my_rules,
             scores=scores,
             elite_count=elite_count,
-            mutation_rate=0.1,
             tournament_size=1,
             rulebase = rulebase,
             alpha = alpha,
+            mutation_rate= mutation_rate,
             top_x=top_x
         )
         my_rules, fitness, diversity = evolution_config.evolve()
@@ -186,6 +187,7 @@ def main (args):
         top_x=args.top_x,
         alpha=args.alpha ,
         agent=agent,
+        mutation_rate=args.mutation_rate,
         rulebase = rulebase,
         target = args.output_file
     )
@@ -268,6 +270,13 @@ if __name__ == "__main__":
         type=float,
         default=0.1,
         help="Top Percentage of high performances that we need to average to determine fitness"
+    )
+
+    parser.add_argument(
+        '--mutation_rate', 
+        type=float, 
+        default=0.1, 
+        help="Rate of mutation for the evolution process"
     )
 
 

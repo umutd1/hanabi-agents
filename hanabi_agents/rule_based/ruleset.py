@@ -6,14 +6,13 @@ from hanabi_learning_environment import pyhanabi_pybind as pyhanabi
 global colors
 colors = ['R', 'Y', 'G', 'W', 'B']
 # ranks = [1,2,3,4,5]
-num_in_deck_by_rank = [3,2,2,2,1] # Note: rank is zero-based
+num_in_deck_by_rank = [3, 2, 2, 2, 1]  # Note: rank is zero-based
 
 
 # Note: depending on the object calling, card could either be a dict eg {'color':'R','rank':0} or a HanabiCard instance with c.color and c.rank methods
 def playable_card(card, fireworks, n_colors):
   #  if isinstance(card, pyhanabi.HanabiCard):
   #    card = {'color':colors[card.color],'rank':card.rank}
-
   """A card is playable if it can be placed on the fireworks pile."""
   if (card.color == pyhanabi.HanabiCard.ColorType.kUnknownColor
           and card().rank != pyhanabi.HanabiCard.RankType.kUnknownRank):
@@ -32,13 +31,14 @@ def playable_card(card, fireworks, n_colors):
       return card.rank == fireworks[card.color]
 
 # card is not playable
-def useless_card(card,fireworks,max_fireworks):
+
+
+def useless_card(card, fireworks, max_fireworks):
   if card.rank <= fireworks[card.color]:
     return True
   if card.rank >= max_fireworks[card.color]:
     return True
   return False
-
 
 
 def get_plausible_cards(observation, player_offset, hand_index):
@@ -67,8 +67,8 @@ def get_visible_cards(observation, player_offset):
   for color, num_ranks in enumerate(observation.fireworks):
     for rank in range(num_ranks):
       card = pyhanabi.HanabiCard(
-        pyhanabi.HanabiCard.ColorType(color),
-        pyhanabi.HanabiCard.RankType(rank)
+          pyhanabi.HanabiCard.ColorType(color),
+          pyhanabi.HanabiCard.RankType(rank)
       )
       visible_cards.append(card)
   return visible_cards
@@ -84,7 +84,8 @@ def get_card_playability(observation, player_offset=0):
   for hand_index in range(my_hand_size):
     total_possibilities = 0
     playable_possibilities = 0
-    plausible_cards = get_plausible_cards(observation, player_offset, hand_index)
+    plausible_cards = get_plausible_cards(
+        observation, player_offset, hand_index)
     for plausible in plausible_cards:
       num_in_deck = observation.parent_game.number_card_instances(plausible)
       for visible in visible_cards:
@@ -94,7 +95,7 @@ def get_card_playability(observation, player_offset=0):
       if playable_card(plausible, observation.fireworks, observation.parent_game.num_colors):
         playable_possibilities += num_in_deck
     playability_array[hand_index] = playable_possibilities/total_possibilities
-    
+
     # for plausible in plausible_cards:
     #   num_in_deck = num_in_deck_by_rank[plausible.rank]
     #   possible_in_deck += num_in_deck
@@ -105,32 +106,34 @@ def get_card_playability(observation, player_offset=0):
     #         for card in their_hand:
     #           if card['color'] == plausible.color and card['rank'] == plausible.rank:
     #             possible_in_deck -=1:
-      # print(num_in_deck)
-      # for player in range(1,observation['num_players']):
-      #   if player!= player_offset:
+    # print(num_in_deck)
+    # for player in range(1,observation['num_players']):
+    #   if player!= player_offset:
 
   return playability_array
 
+
 def get_probability_useless(observation, player_offset=0):
-  visible_cards = get_visible_cards(observation,player_offset)
+  visible_cards = get_visible_cards(observation, player_offset)
   my_hand_size = len(observation.hands[player_offset])
   probability_useless = np.zeros(my_hand_size)
   max_fireworks = get_max_fireworks(observation)
-  for hand_index in range (my_hand_size):
+  for hand_index in range(my_hand_size):
     total_possibilities = 0
     useless_possibilities = 0
-    plausible_cards = get_plausible_cards(observation,player_offset,hand_index)
+    plausible_cards = get_plausible_cards(
+        observation, player_offset, hand_index)
     for plausible in plausible_cards:
       num_in_deck = num_in_deck_by_rank[plausible.rank]
       for visible in visible_cards:
         #if visible['color'] == colors[plausible.color] and visible['rank'] == plausible.rank:
         if visible.color == plausible.color and visible.rank == plausible.rank:
-          num_in_deck -=1
+          num_in_deck -= 1
       total_possibilities += num_in_deck
-      if useless_card(plausible, observation.fireworks ,max_fireworks):
+      if useless_card(plausible, observation.fireworks, max_fireworks):
         useless_possibilities += num_in_deck
     probability_useless[hand_index] = useless_possibilities/total_possibilities
-    
+
     # for plausible in plausible_cards:
     #   num_in_deck = num_in_deck_by_rank[plausible.rank]
     #   possible_in_deck += num_in_deck
@@ -141,11 +144,9 @@ def get_probability_useless(observation, player_offset=0):
     #         for card in their_hand:
     #           if card['color'] == plausible.color and card['rank'] == plausible.rank:
     #             possible_in_deck -=1:
-      # print(num_in_deck)
-      # for player in range(1,observation['num_players']):
-      #   if player!= player_offset:d
-
-
+    # print(num_in_deck)
+    # for player in range(1,observation['num_players']):
+    #   if player!= player_offset:d
 
   # print (observation['pyhanabi'].card_knowledge)
   # print(player_hints)
@@ -156,7 +157,8 @@ def get_probability_useless(observation, player_offset=0):
 def get_max_fireworks(observation):
   discarded_cards = {}
   num_colors = observation.parent_game.num_colors
-  max_fireworks = {pyhanabi.HanabiCard.ColorType(c) : 5 for c in range(num_colors)}
+  max_fireworks = {pyhanabi.HanabiCard.ColorType(
+      c): 5 for c in range(num_colors)}
   for card in observation.discard_pile:
     #  color = card['color']
     #  rank = card['rank']
@@ -178,17 +180,16 @@ def get_max_fireworks(observation):
 
 class Ruleset():
 
-
   @staticmethod
   def discard_oldest_first(observation):
     if observation.information_tokens < observation.parent_game.max_information_tokens:
       return pyhanabi.HanabiMove(
-              pyhanabi.HanabiMove.Type.kDiscard,
-              0, # card index
-              0, # target offset
-              pyhanabi.HanabiCard.ColorType.kUnknownColor,
-              pyhanabi.HanabiCard.RankType.kUnknownRank
-          )
+          pyhanabi.HanabiMove.Type.kDiscard,
+          0,  # card index
+          0,  # target offset
+          pyhanabi.HanabiCard.ColorType.kUnknownColor,
+          pyhanabi.HanabiCard.RankType.kUnknownRank
+      )
       #  return{'action_type': 'DISCARD', 'card_index': 0}
     return None
 
@@ -209,33 +210,33 @@ class Ruleset():
       if card.color is not None:
         if fireworks[card.color] == observation.parent_game.num_ranks:
           return pyhanabi.HanabiMove(
-                  pyhanabi.HanabiMove.Type.kDiscard,
-                  card_index,
-                  0,
-                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                  pyhanabi.HanabiCard.RankType.kUnknownRank
-                )
+              pyhanabi.HanabiMove.Type.kDiscard,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+          )
           #  return{'action_type': 'DISCARD','card_index':card_index}
       #  if (color is not None and rank is not None):
       if (card.color_hinted() and card.rank_hinted()):
         if (card.rank < fireworks[card.color] or card.rank >= max_fireworks[card.color]):
           return pyhanabi.HanabiMove(
-                  pyhanabi.HanabiMove.Type.kDiscard,
-                  card_index,
-                  0,
-                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                  pyhanabi.HanabiCard.RankType.kUnknownRank
-                )
+              pyhanabi.HanabiMove.Type.kDiscard,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+          )
           #  return{'action_type': 'DISCARD','card_index':card_index}
       if card.rank_hinted():
         if card.rank < min(fireworks):
           return pyhanabi.HanabiMove(
-                  pyhanabi.HanabiMove.Type.kDiscard,
-                  card_index,
-                  0,
-                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                  pyhanabi.HanabiCard.RankType.kUnknownRank
-                )
+              pyhanabi.HanabiMove.Type.kDiscard,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+          )
           #  return{'action_type': 'DISCARD','card_index':card_index}
 
     for card_index in range(len(observation.hands[0])):
@@ -250,17 +251,17 @@ class Ruleset():
           break
       if not eventually_playable:
         return pyhanabi.HanabiMove(
-                pyhanabi.HanabiMove.Type.kDiscard,
-                card_index,
-                0,
-                pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                pyhanabi.HanabiCard.RankType.kUnknownRank
-            )
+            pyhanabi.HanabiMove.Type.kDiscard,
+            card_index,
+            0,
+            pyhanabi.HanabiCard.ColorType.kUnknownColor,
+            pyhanabi.HanabiCard.RankType.kUnknownRank
+        )
         #  return{'action_type': 'DISCARD','card_index':card_index}
     return None
 
-
   # Note: this rule only looks at the next player on purpose, for compatibility with the Fossgalaxy implementation. Prioritizes color
+
   @staticmethod
   def tell_unknown(observation):
     PLAYER_OFFSET = 1
@@ -271,27 +272,27 @@ class Ruleset():
         if not card.color_hinted():
           #print("telling color")
           return pyhanabi.HanabiMove(
-                pyhanabi.HanabiMove.Type.kRevealColor,
-                card_index,
-                PLAYER_OFFSET,
-                pyhanabi.HanabiCard.ColorType(card.color),
-                pyhanabi.HanabiCard.RankType.kUnknownRank
-            )
+              pyhanabi.HanabiMove.Type.kRevealColor,
+              card_index,
+              PLAYER_OFFSET,
+              pyhanabi.HanabiCard.ColorType(card.color),
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+          )
           #  return{'action_type':'REVEAL_COLOR', 'color':their_hand[index]['color'], 'target_offset':PLAYER_OFFSET}
         if not card.rank_hinted():
           #print("telling rank")
           return pyhanabi.HanabiMove(
-                pyhanabi.HanabiMove.Type.kRevealRank,
-                card_index,
-                PLAYER_OFFSET,
-                pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                pyhanabi.HanabiCard.RankType(card.rank)
-            )
+              pyhanabi.HanabiMove.Type.kRevealRank,
+              card_index,
+              PLAYER_OFFSET,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType(card.rank)
+          )
           #  return{'action_type':'REVEAL_RANK', 'rank':their_hand[index]['rank'], 'target_offset':PLAYER_OFFSET}
     return None
 
-    
   # Note: this rule only looks at the next player on purpose, for compatibility with the Fossgalaxy implementation. Prioritizes color
+
   @staticmethod
   def tell_randomly(observation):
     if observation.information_tokens > 0:
@@ -302,12 +303,12 @@ class Ruleset():
       r = random.randint(0, 1)
       if (r == 0):
         return pyhanabi.HanabiMove(
-                pyhanabi.HanabiMove.Type.kRevealRank,
-                card_index,
-                PLAYER_OFFSET,
-                pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                pyhanabi.HanabiCard.RankType(card.rank)
-            )
+            pyhanabi.HanabiMove.Type.kRevealRank,
+            card_index,
+            PLAYER_OFFSET,
+            pyhanabi.HanabiCard.ColorType.kUnknownColor,
+            pyhanabi.HanabiCard.RankType(card.rank)
+        )
         #  return {
         #   'action_type': 'REVEAL_RANK',
         #   'rank': card['rank'],
@@ -315,12 +316,12 @@ class Ruleset():
         #  }
       else:
         return pyhanabi.HanabiMove(
-                pyhanabi.HanabiMove.Type.kRevealColor,
-                card_index,
-                PLAYER_OFFSET,
-                pyhanabi.HanabiCard.ColorType(card.color),
-                pyhanabi.HanabiCard.RankType.kUnknownRank
-            )
+            pyhanabi.HanabiMove.Type.kRevealColor,
+            card_index,
+            PLAYER_OFFSET,
+            pyhanabi.HanabiCard.ColorType(card.color),
+            pyhanabi.HanabiCard.RankType.kUnknownRank
+        )
         #  return {
         #   'action_type': 'REVEAL_COLOR',
         #   'color': card['color'],
@@ -343,7 +344,8 @@ class Ruleset():
 
     hand = observation.hands[0]
     for card_index, hint in enumerate(hand.knowledge):
-      plausible_cards = get_plausible_cards(observation, PLAYER_OFFSET, card_index)
+      plausible_cards = get_plausible_cards(
+          observation, PLAYER_OFFSET, card_index)
       definetly_playable = True
       for plausible in plausible_cards:
         if not playable_card(plausible, fireworks, observation.parent_game.num_colors):
@@ -351,11 +353,11 @@ class Ruleset():
           break
       if definetly_playable:
         action = pyhanabi.HanabiMove(
-          pyhanabi.HanabiMove.Type.kPlay,
-          card_index,
-          PLAYER_OFFSET,
-          hint.color,
-          hint.rank
+            pyhanabi.HanabiMove.Type.kPlay,
+            card_index,
+            PLAYER_OFFSET,
+            hint.color,
+            hint.rank
         )
         #  action = {'action_type': 'PLAY', 'card_index': card_index}
         return action
@@ -379,14 +381,14 @@ class Ruleset():
       #  color = card['color']
       #  rank = card['rank']
       if knowledge.color_hinted() and knowledge.rank_hinted():
-        if  knowledge.rank == fireworks[knowledge.color]:
+        if knowledge.rank == fireworks[knowledge.color]:
           return pyhanabi.HanabiMove(
-            pyhanabi.HanabiMove.Type.kPlay,
-            card_index,
-            PLAYER_OFFSET,
-            knowledge.color,
-            knowledge.rank
-            )
+              pyhanabi.HanabiMove.Type.kPlay,
+              card_index,
+              PLAYER_OFFSET,
+              knowledge.color,
+              knowledge.rank
+          )
           #  return{'action_type': 'PLAY', 'card_index': card_index}
     return None
 
@@ -403,15 +405,16 @@ class Ruleset():
         #  player_hints = observation['card_knowledge'][player_offset]
         # Check if the card in the hand of the opponent is playable.
         for card_index, (card, hint) in enumerate(zip(player_hand.cards, player_hand.knowledge)):
-          card_playable = playable_card(card, fireworks, observation.parent_game.num_colors)
+          card_playable = playable_card(
+              card, fireworks, observation.parent_game.num_colors)
           if card_playable and not hint.rank_hinted():
             return pyhanabi.HanabiMove(
-                    pyhanabi.HanabiMove.Type.kRevealRank,
-                    card_index,
-                    player_offset,
-                    pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                    pyhanabi.HanabiCard.RankType(card.rank)
-                )
+                pyhanabi.HanabiMove.Type.kRevealRank,
+                card_index,
+                player_offset,
+                pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                pyhanabi.HanabiCard.RankType(card.rank)
+            )
         #  {
         #       'action_type': 'REVEAL_RANK',
         #       'rank': card['rank'],
@@ -419,12 +422,12 @@ class Ruleset():
         #      }
           elif card_playable and not hint.color_hinted():
             return pyhanabi.HanabiMove(
-                    pyhanabi.HanabiMove.Type.kRevealColor,
-                    card_index,
-                    player_offset,
-                    pyhanabi.HanabiCard.ColorType(card.color),
-                    pyhanabi.HanabiCard.RankType.kUnknownRank
-                )
+                pyhanabi.HanabiMove.Type.kRevealColor,
+                card_index,
+                player_offset,
+                pyhanabi.HanabiCard.ColorType(card.color),
+                pyhanabi.HanabiCard.RankType.kUnknownRank
+            )
             #  {
             #   'action_type': 'REVEAL_COLOR',
             #   'color': card['color'],
@@ -435,7 +438,7 @@ class Ruleset():
   @staticmethod
   def tell_dispensable_factory(min_information_tokens=8):
     def tell_dispensable(observation):
-      if (observation.information_tokens < min_information_tokens):
+      if (observation.information_tokens >= min_information_tokens):
         fireworks = observation.fireworks
 
         # Check if it's possible to hint a card to your colleagues.
@@ -453,45 +456,45 @@ class Ruleset():
               if not hint.color_hinted() and fireworks[card.color] == observation.parent_game.num_ranks:
 
                 return pyhanabi.HanabiMove(
-                        pyhanabi.HanabiMove.Type.kRevealColor,
-                        card_index,
-                        player_offset,
-                        card.color,
-                        pyhanabi.HanabiCard.RankType.kUnknownRank
-                    )
+                    pyhanabi.HanabiMove.Type.kRevealColor,
+                    card_index,
+                    player_offset,
+                    card.color,
+                    pyhanabi.HanabiCard.RankType.kUnknownRank
+                )
                 #  return {'action_type':'REVEAL_COLOR','color':color,'target_offset':player_offset}
               #  if known_rank is None and rank < min(fireworks.values()):
               if not hint.rank_hinted() and card.rank < min(fireworks):
                 return pyhanabi.HanabiMove(
-                        pyhanabi.HanabiMove.Type.kRevealRank,
-                        card_index,
-                        player_offset,
-                        pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                        card.rank
-                    )
+                    pyhanabi.HanabiMove.Type.kRevealRank,
+                    card_index,
+                    player_offset,
+                    pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                    card.rank
+                )
                 #  return {'action_type':'REVEAL_RANK','rank':rank,'target_offset':player_offset}
               #  if rank < fireworks[color]:
               if card.rank < fireworks[card.color]:
                 #  if known_color is None and known_rank is not None:
                 if not hint.color_hinted() and hint.rank_hinted():
                   return pyhanabi.HanabiMove(
-                          pyhanabi.HanabiMove.Type.kRevealColor,
-                          card_index,
-                          player_offset,
-                          card.color,
-                          pyhanabi.HanabiCard.RankType.kUnknownRank
-                      )
-                   #  return {'action_type':'REVEAL_COLOR','color':color,'target_offset':player_offset}
+                      pyhanabi.HanabiMove.Type.kRevealColor,
+                      card_index,
+                      player_offset,
+                      card.color,
+                      pyhanabi.HanabiCard.RankType.kUnknownRank
+                  )
+                  #  return {'action_type':'REVEAL_COLOR','color':color,'target_offset':player_offset}
                 #  if known_color is not None and known_rank is None:
                 if hint.color_hinted() and not hint.rank_hinted():
                   return pyhanabi.HanabiMove(
-                          pyhanabi.HanabiMove.Type.kRevealRank,
-                          card_index,
-                          player_offset,
-                          pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                          card.rank
-                      )
-                    #  return {'action_type':'REVEAL_RANK','rank':rank,'target_offset':player_offset}
+                      pyhanabi.HanabiMove.Type.kRevealRank,
+                      card_index,
+                      player_offset,
+                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                      card.rank
+                  )
+                  #  return {'action_type':'REVEAL_RANK','rank':rank,'target_offset':player_offset}
       return None
     return tell_dispensable
 
@@ -508,24 +511,24 @@ class Ruleset():
       for player_offset in range(1, observation.parent_game.num_players):
         player_hand = observation.hands[player_offset]
         for card_index, (card, hint) in enumerate(zip(player_hand.cards, player_hand.knowledge)):
-          if useless_card(card,fireworks,max_fireworks):
+          if useless_card(card, fireworks, max_fireworks):
             if hint.color_hinted() is None:
               return pyhanabi.HanabiMove(
-                      pyhanabi.HanabiMove.Type.kRevealColor,
-                      card_index,
-                      player_offset,
-                      card.color,
-                      pyhanabi.HanabiCard.RankType.kUnknownRank
-                  )              
+                  pyhanabi.HanabiMove.Type.kRevealColor,
+                  card_index,
+                  player_offset,
+                  card.color,
+                  pyhanabi.HanabiCard.RankType.kUnknownRank
+              )
               #return {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
             if hint.rank_hinted() is None:
               return pyhanabi.HanabiMove(
-                      pyhanabi.HanabiMove.Type.kRevealRank,
-                      card_index,
-                      player_offset,
-                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                      pyhanabi.HanabiCard.RankType(card.rank)
-                  )
+                  pyhanabi.HanabiMove.Type.kRevealRank,
+                  card_index,
+                  player_offset,
+                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                  pyhanabi.HanabiCard.RankType(card.rank)
+              )
               # return {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
     return None
 
@@ -546,38 +549,37 @@ class Ruleset():
           affected_ranks = 0
           for other_card, other_hint in zip(player_hand.cards, player_hand.knowledge):
             if card.color == other_card.color and not other_hint.color_hinted():
-              affected_colors+=1
-            if card.rank  == other_card.rank and not other_hint.rank_hinted():
-              affected_ranks+=1
+              affected_colors += 1
+            if card.rank == other_card.rank and not other_hint.rank_hinted():
+              affected_ranks += 1
           if affected_colors > max_affected:
             max_affected = affected_colors
             #best_action = {'action_type':'REVEAL_COLOR','color':card['color'],'target_offset':player_offset}
             best_action = pyhanabi.HanabiMove(
-                      pyhanabi.HanabiMove.Type.kRevealColor,
-                      card_index,
-                      player_offset,
-                      card.color,
-                      pyhanabi.HanabiCard.RankType.kUnknownRank
-                  )  
+                pyhanabi.HanabiMove.Type.kRevealColor,
+                card_index,
+                player_offset,
+                card.color,
+                pyhanabi.HanabiCard.RankType.kUnknownRank
+            )
           if affected_ranks > max_affected:
             max_affected = affected_ranks
             #best_action = {'action_type':'REVEAL_RANK','rank':card['rank'],'target_offset':player_offset}
             best_action = pyhanabi.HanabiMove(
-                      pyhanabi.HanabiMove.Type.kRevealRank,
-                      card_index,
-                      player_offset,
-                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                      pyhanabi.HanabiCard.RankType(card.rank)
-                  )
+                pyhanabi.HanabiMove.Type.kRevealRank,
+                card_index,
+                player_offset,
+                pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                pyhanabi.HanabiCard.RankType(card.rank)
+            )
     #print(best_action)
     #print("")
     return best_action
 
-
-
   #tells rank or color at random if tell_rank is unspecified, tells rank if set to 1, color if set to 0.
+
   @staticmethod
-  def tell_playable_card(observation, tell_rank = random.randint(0,1)):
+  def tell_playable_card(observation, tell_rank=random.randint(0, 1)):
     fireworks = observation.fireworks
 
     # Check if it's possible to hint a card to your colleagues.
@@ -592,41 +594,39 @@ class Ruleset():
               #print("fireworks:", fireworks)
               #print("telling: ", card)
               return pyhanabi.HanabiMove(
-                      pyhanabi.HanabiMove.Type.kRevealRank,
-                      card_index,
-                      player_offset,
-                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                      card.rank
-                  )
-              
-              
+                  pyhanabi.HanabiMove.Type.kRevealRank,
+                  card_index,
+                  player_offset,
+                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                  card.rank
+              )
+
               #{ 'action_type': 'REVEAL_RANK', 'rank': card['rank'],'target_offset': player_offset}
             elif (not hint.color_hinted()):
               #print("fireworks: ",fireworks)
               #print("telling: ", card)
               return pyhanabi.HanabiMove(
-                        pyhanabi.HanabiMove.Type.kRevealColor,
-                        card_index,
-                        player_offset,
-                        card.color,
-                        pyhanabi.HanabiCard.RankType.kUnknownRank
-                  ) 
-              
+                  pyhanabi.HanabiMove.Type.kRevealColor,
+                  card_index,
+                  player_offset,
+                  card.color,
+                  pyhanabi.HanabiCard.RankType.kUnknownRank
+              )
+
               #{'action_type': 'REVEAL_COLOR','color': card['color'],'target_offset': player_offset}
-            
+
             #if you wan to tell the color but already now the color you tell the rank instead
             elif(not hint.rank_hinted()):
               #print("fireworks: ", fireworks)
               #print("telling: ", card)
               return pyhanabi.HanabiMove(
-                      pyhanabi.HanabiMove.Type.kRevealRank,
-                      card_index,
-                      player_offset,
-                      pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                      card.rank
-                  )
+                  pyhanabi.HanabiMove.Type.kRevealRank,
+                  card_index,
+                  player_offset,
+                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                  card.rank
+              )
     return None
-
 
   @staticmethod
   def legal_random(observation):
@@ -645,34 +645,34 @@ class Ruleset():
       player_offset = 0
       hand = observation.hands[player_offset]
       hand_size = len(hand)
-      discard_index = random.randint(0,hand_size-1)
+      discard_index = random.randint(0, hand_size-1)
       return pyhanabi.HanabiMove(
-              pyhanabi.HanabiMove.Type.kDiscard,
-              discard_index,
-              0,
-              pyhanabi.HanabiCard.ColorType.kUnknownColor,
-              pyhanabi.HanabiCard.RankType.kUnknownRank
-            )
+          pyhanabi.HanabiMove.Type.kDiscard,
+          discard_index,
+          0,
+          pyhanabi.HanabiCard.ColorType.kUnknownColor,
+          pyhanabi.HanabiCard.RankType.kUnknownRank
+      )
       #return {'action_type': 'DISCARD', 'card_index': discard_index}
     return None
 
   @staticmethod
-  def play_probably_safe_factory(treshold = 0.95, require_extra_lives = False):
+  def play_probably_safe_factory(treshold=0.95, require_extra_lives=False):
     def play_probably_safe_treshold(observation):
       playability_vector = observation.playable_percent()
       #print("old, ", get_card_playability(observation) )
       #print("new, ", playability_vector)
       card_index = np.argmax(playability_vector)
       #print(playability_vector)
-      if not require_extra_lives or observation.life_tokens >1:
-        if playability_vector[card_index]>=treshold:
+      if not require_extra_lives or observation.life_tokens > 1:
+        if playability_vector[card_index] >= treshold:
           action = pyhanabi.HanabiMove(
-            pyhanabi.HanabiMove.Type.kPlay,
-            card_index,
-            0,
-            pyhanabi.HanabiCard.ColorType.kUnknownColor,
-            pyhanabi.HanabiCard.RankType.kUnknownRank
-            )
+              pyhanabi.HanabiMove.Type.kPlay,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+          )
 
           #  action = {'action_type': 'PLAY', 'card_index': card_index}
           return action
@@ -681,9 +681,9 @@ class Ruleset():
     return play_probably_safe_treshold
 
   @staticmethod
-  def discard_probably_useless_factory(treshold = 0.75):
+  def discard_probably_useless_factory(treshold=0.75):
     def play_probably_useless_treshold(observation):
-      if observation.information_tokens < observation.parent_game.max_information_tokens: 
+      if observation.information_tokens < observation.parent_game.max_information_tokens:
         #probability_useless_old = get_probability_useless(observation)
         #print("player offset: ", observation.current_player_offset)
         #print("old: ",probability_useless)
@@ -697,15 +697,15 @@ class Ruleset():
 
         # print("probability useless" +str(probability_useless))
         card_index = np.argmax(probability_useless)
-        if probability_useless[card_index]>=treshold:
+        if probability_useless[card_index] >= treshold:
           #action = {'action_type': 'DISCARD', 'card_index': card_index}
           return pyhanabi.HanabiMove(
-                  pyhanabi.HanabiMove.Type.kDiscard,
-                  card_index,
-                  0,
-                  pyhanabi.HanabiCard.ColorType.kUnknownColor,
-                  pyhanabi.HanabiCard.RankType.kUnknownRank
-                )          
+              pyhanabi.HanabiMove.Type.kDiscard,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+          )
           #return action
       return None
 
@@ -716,3 +716,125 @@ class Ruleset():
   def hail_mary(observation):
     if (observation.deck_size == 0 and observation.life_tokens > 1):
       return Ruleset.play_probably_safe_factory(0.0)(observation)
+
+  #discards the least playable card if there are less than n hint tokens
+
+  @staticmethod
+  def discard_least_playable_factory(n_hints=4):
+    def discard_least_playable(observation):
+      if n_hints <= observation.information_tokens:
+        return None
+      probability_useless = observation.discardable_percent()
+      card_index = np.argmax(probability_useless)
+      return pyhanabi.HanabiMove(
+          pyhanabi.HanabiMove.Type.kDiscard,
+          card_index,
+          0,
+          pyhanabi.HanabiCard.ColorType.kUnknownColor,
+          pyhanabi.HanabiCard.RankType.kUnknownRank
+      )
+    return discard_least_playable
+
+  #if a new card(last drawn card in hand is considered as new) in hand was hinted plays it
+  @staticmethod
+  def play_new_hinted(observation):
+    card_index = len(observation.hands[0].cards) - 1
+    #print("card number:", card_index)
+    knowledge = observation.hands[0].knowledge[-1]
+    if knowledge.color_hinted() or knowledge.rank_hinted():
+      return pyhanabi.HanabiMove(
+          pyhanabi.HanabiMove.Type.kPlay,
+          card_index,
+          0,
+          pyhanabi.HanabiCard.ColorType.kUnknownColor,
+          pyhanabi.HanabiCard.RankType.kUnknownRank
+      )
+    return None
+
+  #if a new playable card came and there are more than n information tokens hints the card.
+  @staticmethod
+  def tell_safe_new_threshold(n_hints=4):
+    def tell_safe_new(observation):
+      if observation.information_tokens == 0:
+        return None
+      if n_hints > observation.information_tokens:
+        return None
+      fireworks = observation.fireworks
+      #looks at the newest card of opponents
+      for i in range(1, observation.parent_game.num_players):
+        player_offset = i
+        knowledge = observation.hands[i].knowledge[-1]
+        card = observation.hands[i].cards[-1]
+        card_index = len(observation.hands[i].cards) - 1
+        if playable_card(card, fireworks, observation.parent_game.num_colors):
+          if not knowledge.rank_hinted():
+            return pyhanabi.HanabiMove(
+                pyhanabi.HanabiMove.Type.kRevealRank,
+                card_index,
+                player_offset,
+                pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                card.rank
+            )
+          elif not knowledge.color_hinted():
+            return pyhanabi.HanabiMove(
+                pyhanabi.HanabiMove.Type.kRevealColor,
+                card_index,
+                player_offset,
+                card.color,
+                pyhanabi.HanabiCard.RankType.kUnknownRank
+            )
+          else:
+            return None
+    return tell_safe_new
+
+  #if a hint makes a card 100% playable for the other player then gives the hint.
+  #Similiar rule to tell_playable_outer but does not give the hint unless
+  #the hint itself makes the card certainly playable for the other guy.
+  @staticmethod
+  def tell_if_certain_playable(observation):
+    fireworks = observation.fireworks
+    if observation.information_tokens > 0:
+      for player_offset in range(1, observation.parent_game.num_players):
+        player_hand = observation.hands[player_offset]
+        for card_index, (card, hint) in enumerate(zip(player_hand.cards, player_hand.knowledge)):
+          card_playable = playable_card(
+              card, fireworks, observation.parent_game.num_colors)
+          if card_playable and (hint.color_hinted() and not hint.rank_hinted()):
+            return pyhanabi.HanabiMove(
+                pyhanabi.HanabiMove.Type.kRevealRank,
+                card_index,
+                player_offset,
+                pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                pyhanabi.HanabiCard.RankType(card.rank)
+            )
+          elif card_playable and (hint.rank_hinted() and not hint.color_hinted()):
+            return pyhanabi.HanabiMove(
+                pyhanabi.HanabiMove.Type.kRevealColor,
+                card_index,
+                player_offset,
+                pyhanabi.HanabiCard.ColorType(card.color),
+                pyhanabi.HanabiCard.RankType.kUnknownRank
+            )
+    return None
+
+  #gives the hint according to specified card, encoding follows:
+  #colors = ['R', 'Y', 'G', 'W', 'B']
+  #ranks = [1,2,3,4,5]
+  #plays the first card in hand if red, second if yellow etc.
+  #discards the first card in hand if rank 1, second if 2 etc.
+  #threshold is for risk taking
+  #next rule is the play rule
+  #done for 2 players
+  @staticmethod
+  def tell_encoded_threshold(threshold):
+    def tell_encoded(observation):
+      fireworks = observation.fireworks
+      cards = observation.hands[1].cards
+      knowledge = observation.hands[1].knowledge
+      playability_vector = observation.playable_percent()
+      card_max = np.argmax(playability_vector)
+      for i in range(len(cards)):
+        if playability_vector[i] >= threshold:
+          #if cards[i]
+          pass
+    return tell_encoded
