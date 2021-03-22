@@ -435,7 +435,7 @@ class Ruleset():
   @staticmethod
   def tell_dispensable_factory(min_information_tokens=8):
     def tell_dispensable(observation):
-      if (observation.information_tokens < min_information_tokens):
+      if (observation.information_tokens >= min_information_tokens):
         fireworks = observation.fireworks
 
         # Check if it's possible to hint a card to your colleagues.
@@ -716,3 +716,124 @@ class Ruleset():
   def hail_mary(observation):
     if (observation.deck_size == 0 and observation.life_tokens > 1):
       return Ruleset.play_probably_safe_factory(0.0)(observation)
+
+
+  #discards the least playable card if there are less than n hint tokens
+  @staticmethod
+  def discard_least_playable_factory(n_hints = 4):
+    def discard_least_playable(observation):
+      if n_hints <= observation.information_tokens:
+        return None
+      probability_useless = observation.discardable_percent()
+      card_index = np.argmax(probability_useless)
+      return pyhanabi.HanabiMove(
+              pyhanabi.HanabiMove.Type.kDiscard,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+            )
+    return discard_least_playable          
+
+  #if a new card(last drawn card in hand is considered as new) in hand was hinted plays it  
+  @staticmethod
+  def play_new_hinted(observation):
+    card_index = len(observation.hands[0].cards) - 1
+    #print("card number:", card_index)
+    knowledge = observation.hands[0].knowledge[-1]
+    if knowledge.color_hinted() or knowledge.rank_hinted():
+      return pyhanabi.HanabiMove(
+              pyhanabi.HanabiMove.Type.kPlay,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+              )
+    return None
+
+  #if a new playable card came and there are more than n information tokens hints the card.
+  @staticmethod
+  def tell_safe_new_threshold(n_hints = 4):
+    def tell_safe_new(observation):
+      if observation.information_tokens == 0:
+        return None
+      if n_hints > observation.information_tokens:
+        return None
+      fireworks = observation.fireworks
+      #looks at the newest card of opponents
+      for i in range(1, observation.parent_game.num_players):
+        player_offset = i
+        knowledge = observation.hands[i].knowledge[-1]
+        card = observation.hands[i].cards[-1]
+        card_index = len(observation.hands[i].cards) - 1
+        if playable_card(card, fireworks, observation.parent_game.num_colors):
+          if not knowledge.rank_hinted():
+            return pyhanabi.HanabiMove(
+                    pyhanabi.HanabiMove.Type.kRevealRank,
+                    card_index,
+                    player_offset,
+                    pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                    card.rank
+                    )
+          elif not knowledge.color_hinted():
+            return pyhanabi.HanabiMove(
+                    pyhanabi.HanabiMove.Type.kRevealColor,
+                    card_index,
+                    player_offset,
+                    card.color,
+                    pyhanabi.HanabiCard.RankType.kUnknownRank
+                    )
+          else:
+            return None     
+    return tell_safe_new      
+
+  #if a hint makes a card 100% playable for the other player then gives the hint.
+  #Similiar rule to tell_playable_outer but does not give the hint unless
+  #the hint itself makes the card certainly playable for the other guy.
+  @staticmethod
+  def tell_if_certain_playable(observation):
+    fireworks = observation.fireworks
+    if observation.information_tokens > 0:
+      for player_offset in range(1, observation.parent_game.num_players):
+        player_hand = observation.hands[player_offset]
+        for card_index, (card, hint) in enumerate(zip(player_hand.cards, player_hand.knowledge)):
+          card_playable = playable_card(card, fireworks, observation.parent_game.num_colors)
+          if card_playable and (hint.color_hinted() and not hint.rank_hinted()):
+            return pyhanabi.HanabiMove(
+                    pyhanabi.HanabiMove.Type.kRevealRank,
+                    card_index,
+                    player_offset,
+                    pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                    pyhanabi.HanabiCard.RankType(card.rank)
+                )
+          elif card_playable and (hint.rank_hinted() and not hint.color_hinted()):
+            return pyhanabi.HanabiMove(
+                    pyhanabi.HanabiMove.Type.kRevealColor,
+                    card_index,
+                    player_offset,
+                    pyhanabi.HanabiCard.ColorType(card.color),
+                    pyhanabi.HanabiCard.RankType.kUnknownRank
+                )
+    return None
+
+  #gives the hint according to specified card, encoding follows:
+  #colors = ['R', 'Y', 'G', 'W', 'B']
+  #ranks = [1,2,3,4,5]
+  #plays the first card in hand if red, second if yellow etc.
+  #discards the first card in hand if rank 1, second if 2 etc.
+  #threshold is for risk taking
+  #next rule is the play rule
+  #done for 2 players
+  @staticmethod
+  def tell_encoded_threshold(threshold):
+    def tell_encoded(observation):
+      fireworks = observation.fireworks
+      cards = observation.hands[1].cards
+      knowledge = observation.hands[1].knowledge
+      playability_vector = observation.playable_percent()
+      card_max = np.argmax(playability_vector)
+      for i in range(len(cards)):
+        if playability_vector[i] >= threshold:
+          #if cards[i]
+          pass
+    return tell_encoded

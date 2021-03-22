@@ -12,7 +12,7 @@ import timeit
 import statistics
 import dill as pickle
 import matplotlib.pyplot as plt
-import plotter 
+import plotter
 
 ## Target for the pickle file
 target = 'Experiments/populatation_20.pickle'
@@ -22,7 +22,7 @@ load_pickled = False
 start_time = timeit.default_timer()
 
 n_players = 2
-population_size = 20
+population_size = 50
 n_generations = 10     
 n_rules = 10      # Each agent is a list of these many rules
 elite_count = int(0.25 * population_size)            # We take 20% of the agents with the best score and retain them 
@@ -39,6 +39,7 @@ n_parallel = population_size * games_played
 # Initialize the environment
 env_conf = make_hanabi_env_config('Hanabi-Full', n_players)
 env = hmf.HanabiParallelEnvironment(env_conf, n_parallel)
+#print(env_conf)
 
 my_rules = []
 
@@ -67,9 +68,24 @@ experiment_data = {
     'eval' : 0
 }
 
+rule_counter = {}
+for rule in rules.big_ruleset:
+    rule_name = rule.__name__
+    try:
+        for x in rule.__closure__[::-1]:
+            rule_name = rule_name + "_" + str(x.cell_contents) 
+    except:
+        pass
+    rule_counter[rule_name] = [0,0]
+    
+
 # number of generations
 for i in range(n_generations):
+
     scores = []
+    for x in rule_counter:
+        rule_counter[x] = [0,0]
+    
 
     #agent plays against all the other agents n_parallel times / population_size
     for k in range(population_size):
@@ -82,7 +98,17 @@ for i in range(n_generations):
         #print(result)
         #print("Average: ", result.mean())
         scores.append(result_average)
-    
+        #print(agents[0].rule_times)
+        for agent in agents[0].rule_times:
+            for l  in range(0, len(agent)-1):
+                rule_used = agent[l][2] - agent[l+1][2]
+                rule_counter[agent[l][0]][1] += rule_used
+                rule_counter[agent[l][0]][0] += agent[l][1]
+            rule_used = agent[-1][2]
+            rule_counter[agent[l][0]][1] += rule_used
+            rule_counter[agent[l][0]][0] += agent[l][1]
+        #print(rule_counter)
+
     #discard the the unwanted percentage of scores, this is used for evolution
     scores_sorted = np.sort(scores)[...,::-1]
     scores_sorted = scores_sorted[...,:top_count]
@@ -94,6 +120,8 @@ for i in range(n_generations):
     
     target_file = "Experiments/Heatmaps/heatmap_gen_" + str(i+1)
     plotter.plot(scores, target_file)
+    target_file = "Experiments/Charts/barchart_gen_" + str(i+1)
+    plotter.barchart_rule_count(rule_counter, target_file)
 
     my_rules = evolution_config.evolve()
     

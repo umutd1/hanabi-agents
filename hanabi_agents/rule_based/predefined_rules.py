@@ -75,40 +75,39 @@ all_rules = [
 
 
 big_ruleset = [
-    Ruleset.play_probably_safe_factory(0.1, True),
+    #Ruleset.play_probably_safe_factory(0.1, True),
     Ruleset.play_probably_safe_factory(0.2, True),
-    Ruleset.play_probably_safe_factory(0.3, True),
+    #Ruleset.play_probably_safe_factory(0.3, True),
     Ruleset.play_probably_safe_factory(0.4, True),
-    Ruleset.play_probably_safe_factory(0.5, True),
+    #Ruleset.play_probably_safe_factory(0.5, True),
     Ruleset.play_probably_safe_factory(0.6, True),
-    Ruleset.play_probably_safe_factory(0.7, True),
+    #Ruleset.play_probably_safe_factory(0.7, True),
     Ruleset.play_probably_safe_factory(0.8, True),
-    Ruleset.play_probably_safe_factory(0.9, True),
+    #Ruleset.play_probably_safe_factory(0.9, True),
     Ruleset.play_probably_safe_factory(0.99, True),
 
-    Ruleset.play_probably_safe_factory(0.1, False),
+    #Ruleset.play_probably_safe_factory(0.1, False),
     Ruleset.play_probably_safe_factory(0.2, False),
-    Ruleset.play_probably_safe_factory(0.3, False),
+    #Ruleset.play_probably_safe_factory(0.3, False),
     Ruleset.play_probably_safe_factory(0.4, False),
-    Ruleset.play_probably_safe_factory(0.5, False),
+    #Ruleset.play_probably_safe_factory(0.5, False),
     Ruleset.play_probably_safe_factory(0.6, False),
-    Ruleset.play_probably_safe_factory(0.7, False),
+    #Ruleset.play_probably_safe_factory(0.7, False),
     Ruleset.play_probably_safe_factory(0.8, False),
-    Ruleset.play_probably_safe_factory(0.9, False),
+    #Ruleset.play_probably_safe_factory(0.9, False),
     Ruleset.play_probably_safe_factory(0.99, False),
 
-    Ruleset.discard_probably_useless_factory(0.1),
+    #Ruleset.discard_probably_useless_factory(0.1),
     Ruleset.discard_probably_useless_factory(0.2),
-    Ruleset.discard_probably_useless_factory(0.3),
+    #Ruleset.discard_probably_useless_factory(0.3),
     Ruleset.discard_probably_useless_factory(0.4),
-    Ruleset.discard_probably_useless_factory(0.5),
+    #Ruleset.discard_probably_useless_factory(0.5),
     Ruleset.discard_probably_useless_factory(0.6),
-    Ruleset.discard_probably_useless_factory(0.7),
+    #Ruleset.discard_probably_useless_factory(0.7),
     Ruleset.discard_probably_useless_factory(0.8),
-    Ruleset.discard_probably_useless_factory(0.9),
+    #Ruleset.discard_probably_useless_factory(0.9),
     Ruleset.discard_probably_useless_factory(0.99),
 
-    Ruleset.tell_dispensable_factory(0),
     Ruleset.tell_dispensable_factory(1),
     Ruleset.tell_dispensable_factory(2),
     Ruleset.tell_dispensable_factory(3),
@@ -128,7 +127,30 @@ big_ruleset = [
     
     Ruleset.discard_randomly,
     Ruleset.osawa_discard,
-    Ruleset.discard_oldest_first
+    Ruleset.discard_oldest_first,
+
+    Ruleset.tell_if_certain_playable,
+
+    #Ruleset.discard_least_playable_factory(1),
+    Ruleset.discard_least_playable_factory(2),
+    #Ruleset.discard_least_playable_factory(3),
+    Ruleset.discard_least_playable_factory(4),
+    #Ruleset.discard_least_playable_factory(5),
+    Ruleset.discard_least_playable_factory(6),
+    #Ruleset.discard_least_playable_factory(7),
+    Ruleset.discard_least_playable_factory(8),
+
+    Ruleset.play_new_hinted,
+
+    Ruleset.tell_safe_new_threshold(0),
+    #Ruleset.tell_safe_new_threshold(1),
+    Ruleset.tell_safe_new_threshold(2),
+    #Ruleset.tell_safe_new_threshold(3),
+    Ruleset.tell_safe_new_threshold(4),
+    #Ruleset.tell_safe_new_threshold(5),
+    Ruleset.tell_safe_new_threshold(6),
+    #Ruleset.tell_safe_new_threshold(7),
+
 ]
 
 
@@ -142,17 +164,7 @@ small_rules = [
 ]
 
 test_rules = [    
-    Ruleset.tell_most_information,
     Ruleset.play_probably_safe_factory(0.99,False),
-    #Ruleset.tell_unknown,    
-    #todo: test
-    #Ruleset.tell_anyone_useless_card,
-    #todo:
-    #Ruleset.tell_most_information,
-    Ruleset.tell_playable_card,    
-    Ruleset.discard_probably_useless_factory(0.75),
-    Ruleset.tell_randomly,
-    Ruleset.discard_oldest_first,
     Ruleset.legal_random
 ]
 

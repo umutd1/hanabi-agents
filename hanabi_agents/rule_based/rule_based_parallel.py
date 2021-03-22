@@ -29,7 +29,13 @@ class ParallelRulebasedAgent():
             #print("agent nr:", i)
             for k in range(len(rules[i])):
                 #print(rules[i][k].__name__)
-                self.rule_times[i].append([rules[i][k].__name__ ,0,0])
+                rule_name = rules[i][k].__name__
+                try:
+                    for x in rules[i][k].__closure__[::-1]:
+                        rule_name = rule_name + "_" + str(x.cell_contents) 
+                except:
+                    pass
+                self.rule_times[i].append([rule_name,0,0])
             #print(len(rules[i]))
 
         self.total_time = 0
