@@ -55,6 +55,7 @@ def session(
         'n_generations': n_generations,
         'n_rules': n_rules,
         'elite_count': elite_count,
+        'top_count' : top_count,
         'current_gen': 0,
         'agents': [],
         'best_agent': [],
@@ -100,6 +101,12 @@ def session(
         scores = np.mean(scores, axis = 2)
 
         avg_scores = np.mean(scores, axis = 1)
+        
+        log_scores = np.sort(scores, axis =1)
+        
+
+        log_scores = np.array([np.mean(arr[-top_count:]) for arr in log_scores])
+
         # Print some values for sanity check
         print("Gen:", i+1, "Max:", np.max(avg_scores),
             "Avg:", np.mean(avg_scores), "List:", avg_scores)
@@ -124,7 +131,7 @@ def session(
         experiment_data['current_gen'] = i + 1
         experiment_data['agents'] = my_rules
         experiment_data['best_agent'] = best_agent
-        experiment_data['scores'] = np.vstack((experiment_data['scores'], avg_scores))
+        experiment_data['scores'] = np.vstack((experiment_data['scores'], log_scores))
         experiment_data['fitness'] = np.vstack((experiment_data['fitness'], fitness))
         experiment_data['diversity'] = np.vstack((experiment_data['diversity'], diversity))
 

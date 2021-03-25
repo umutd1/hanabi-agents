@@ -107,6 +107,13 @@ class Evolution:
         return (fitness, Diversities)
     
     
+    def vanilla_update(self):
+        pass 
+
+    def rank_space_method(self):
+        pass
+    
+    
     def evolve(self):
         
         #1 - elites -> Retain the top agents on a mixture of top scores and most diverse
