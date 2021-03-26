@@ -170,6 +170,7 @@ def main (args):
             loaded_data = np.array(loaded_data)
             if loaded_data.shape[0] == args.population_size:
                 agent = loaded_data
+                _, rulebase = rules.random_rules(args.n_rules) 
             else:
                 for _ in range(args.population_size):
                     x, rulebase = rules.random_rules(args.n_rules)
