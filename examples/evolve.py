@@ -15,7 +15,7 @@ class Evolution:
                 mutation_rate = 0.1, 
                 tournament_size = 1, 
                 alpha = 0.1,
-                top_x = 0.2 
+                top_x = 0.2, 
                 ):
         
         self.top_x = top_x
@@ -69,6 +69,7 @@ class Evolution:
                     #print("Mutation...")
                     roll_swap = random.randint(0,len(ruleset)-1)
                     self.next_population[i][k] = ruleset[roll_swap]
+        
 
     def calculate_fitness(self):
         
@@ -108,21 +109,8 @@ class Evolution:
     
     
     def vanilla_update(self):
-        pass 
-
-    def rank_space_method(self):
-        pass
-    
-    
-    def evolve(self):
         
-        #1 - elites -> Retain the top agents on a mixture of top scores and most diverse
-
-        # fitness = self.balance_ratio * self.scores + (1 - self.balance_ratio) * self.Entropies
-        # index_elites = np.argsort(fitness)[-self.elite_count:]
-        
-        # performance = np.array(self.scores + self.balance_ratio * self.Entropies)
-        # fitness = np.argsort(performance)[-(top_x ):]
+        # Use the fitness and
 
         fitness, Diversity = self.calculate_fitness()
 
@@ -131,6 +119,18 @@ class Evolution:
         for i in index_elites:
             self.next_population.append(self.current_population[i])
         
+        return (fitness, Diversity) 
+
+    def rank_space_method(self):
+        pass
+    
+    
+    def evolve(self):
+
+        # Determining Elites
+        
+        fitness, Diversity = self.vanilla_update() 
+
         #2 - crossover_selection
         crossover_list = self.crossover_selection()
         

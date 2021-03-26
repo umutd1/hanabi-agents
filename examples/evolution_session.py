@@ -12,6 +12,7 @@ import timeit
 import statistics
 import dill as pickle
 import gin
+import math
 
 
 def session(
@@ -26,14 +27,13 @@ def session(
     mutation_rate = 0.1,
     agent = None,
     rulebase=rules.big_ruleset,
-    target = None
+    target = None, 
+    decay_mutation = False
 ):
 
-    # n_players = n_players
-    # population_size = population_size
-    # n_generations = n_generations
-    # n_rules = n_rules      # Each agent is a list of these many rules
     
+    rate_of_mutation = mutation_rate
+
     # We take 20% of the agents with the best score and retain them 
     elite_count = int(elite_percentage * population_size)
 
@@ -66,6 +66,9 @@ def session(
     }
 
 
+    
+    
+    
     # Initialize the environment
     env_conf = make_hanabi_env_config('Hanabi-Full', n_players)
     env = hmf.HanabiParallelEnvironment(env_conf, n_parallel)
@@ -119,11 +122,15 @@ def session(
             tournament_size=1,
             rulebase = rulebase,
             alpha = alpha,
-            mutation_rate= mutation_rate,
+            mutation_rate= rate_of_mutation,
             top_x=top_x
         )
         my_rules, fitness, diversity = evolution_config.evolve()
 
+        if decay_mutation:
+            rate_of_mutation = mutation_rate / math.pow(i+1, 0.5)
+
+        
         # Get the best agent as the index of the first instance of the highest value
         best_agent = my_rules[np.argmax(avg_scores)]
 
@@ -197,7 +204,8 @@ def main (args):
         agent=agent,
         mutation_rate=args.mutation_rate,
         rulebase = rulebase,
-        target = args.output_file
+        target = args.output_file, 
+        decay_mutation=args.decay_mutation
     )
 
     stop_time = timeit.default_timer()
@@ -284,6 +292,13 @@ if __name__ == "__main__":
         '--mutation_rate', 
         type=float, 
         default=0.1, 
+        help="Rate of mutation for the evolution process"
+    )
+
+    parser.add_argument(
+        '--decay_mutation', 
+        type=bool, 
+        default=False, 
         help="Rate of mutation for the evolution process"
     )
 
