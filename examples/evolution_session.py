@@ -22,12 +22,12 @@ load_pickled = False
 start_time = timeit.default_timer()
 
 n_players = 2
-population_size = 50
+population_size = 2
 n_generations = 10     
 n_rules = 10      # Each agent is a list of these many rules
 elite_count = int(0.25 * population_size)            # We take 20% of the agents with the best score and retain them 
 top_count = int(population_size * (0.2)) #evaluation of percentage of scores for evolution
-games_played = 5 #games played per agent
+games_played = 1 #games played per agent
 
 '''
     Total number of games to be played -> Each agent plays 10 games against every other agent
@@ -89,7 +89,8 @@ for i in range(n_generations):
 
     #agent plays against all the other agents n_parallel times / population_size
     for k in range(population_size):
-        agents = [ParallelRulebasedAgent([my_rules[k]],n_parallel), ParallelRulebasedAgent(my_rules,n_parallel)]
+        #agents = [ParallelRulebasedAgent([my_rules[k]],n_parallel), ParallelRulebasedAgent(my_rules,n_parallel)]
+        agents = [ParallelRulebasedAgent([rules.test_rules],n_parallel), ParallelRulebasedAgent(my_rules,n_parallel)]
         parallel_session = hmf.HanabiParallelSession(env, agents)
         #print("Game config", env.game_config)
         result = parallel_session.run_eval(dest = None, print_intermediate = False)

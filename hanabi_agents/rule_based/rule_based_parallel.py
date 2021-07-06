@@ -69,8 +69,10 @@ class ParallelRulebasedAgent():
                     #self.histogram[index] += 1
                     self.totalCalls += 1
                     #print("called rule:", rule)
+                    #print("Observation:", observation)
+                    #print("last moves:", observation.last_moves)
                     #print("called action: ", action)
-                    
+                    #print("")
                     #print(self.rule_times)
                     return action
             #self.histogram[-1] += 1

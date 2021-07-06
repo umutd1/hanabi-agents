@@ -819,21 +819,145 @@ class Ruleset():
   #gives the hint according to specified card, encoding follows:
   #colors = ['R', 'Y', 'G', 'W', 'B']
   #ranks = [1,2,3,4,5]
-  #plays the first card in hand if red, second if yellow etc.
-  #discards the first card in hand if rank 1, second if 2 etc.
-  #threshold is for risk taking
+  #plays according to color.
+  #discards according to rank.
+  #threshold is for risk taking, hints for min number of hints
   #next rule is the play rule
   #done for 2 players
+  #if multiple_hints = false, does not give hint if the last move is hint
   @staticmethod
-  def tell_encoded_threshold(threshold):
-    def tell_encoded(observation):
-      fireworks = observation.fireworks
+  def tell_encoded_playable_factory(min_hints = 1, max_hints = 8, multiple_hint = True):
+    def tell_encoded_playable(observation):
+      if observation.information_tokens < min_hints:
+        return None
+      if observation.information_tokens > max_hints:
+        return None
+      if not multiple_hint:
+        try:
+          last_move = observation.last_moves[0]
+          if str(last_move.move)[1] == 'R':
+            return None
+        except:
+          pass
+      max_fireworks = get_max_fireworks(observation)
       cards = observation.hands[1].cards
       knowledge = observation.hands[1].knowledge
-      playability_vector = observation.playable_percent()
-      card_max = np.argmax(playability_vector)
+      player_offset = 1
       for i in range(len(cards)):
-        if playability_vector[i] >= threshold:
-          #if cards[i]
+        if playable_card(cards[i], observation.fireworks, observation.parent_game.num_colors):
+          for card in cards:
+            if card.color == i:
+              if not knowledge[i].color_hinted():
+                action =  pyhanabi.HanabiMove(
+                    pyhanabi.HanabiMove.Type.kRevealColor,
+                    i,
+                    player_offset,
+                    pyhanabi.HanabiCard.ColorType(card.color),
+                    pyhanabi.HanabiCard.RankType.kUnknownRank
+                    )
+                return action
+      return None
+    return tell_encoded_playable
+
+  #encoded discard hint
+  @staticmethod
+  def tell_encoded_discardable_factory(min_hints = 4, max_hints = 8, multiple_hint = False):
+    def tell_encoded_discardable(observation):
+      if observation.information_tokens < min_hints:
+        return None
+      if observation.information_tokens > max_hints:
+        return None
+      if not multiple_hint:
+        try:
+          last_move = observation.last_moves[0]
+          if str(last_move.move)[1] == 'R' :
+            return None
+        except:
           pass
-    return tell_encoded
+      max_fireworks = get_max_fireworks(observation)
+      cards = observation.hands[1].cards
+      knowledge = observation.hands[1].knowledge
+      player_offset = 1
+      for i in range(len(cards)):
+        if useless_card(cards[i],observation.fireworks,max_fireworks):
+          for card in cards:
+            if card.rank == i:
+              if not knowledge[i].rank_hinted():
+                action =  pyhanabi.HanabiMove(
+                    pyhanabi.HanabiMove.Type.kRevealRank,
+                    i,
+                    player_offset,
+                    pyhanabi.HanabiCard.ColorType.kUnknownColor,
+                    pyhanabi.HanabiCard.RankType(card.rank)
+                    )
+                return action
+      return None
+    return tell_encoded_discardable
+
+  #plays the hinted card according to the encoding
+  @staticmethod
+  def play_encoded_hinted_factory(min_hints = 0):
+    def play_encoded_hinted(observation):
+      if observation.information_tokens < min_hints:
+        return None
+      colors = ['R', 'Y', 'G', 'W', 'B']
+      try:
+        last_move = observation.last_moves[0]
+        if str(last_move.move)[1] == 'R' and str(last_move.move)[18] == 'c':
+          card_index = colors.index(str(last_move.move)[-2])
+          #print("play:", observation.last_moves[-1])
+          return pyhanabi.HanabiMove(
+              pyhanabi.HanabiMove.Type.kPlay,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+              )
+      except:
+        return None
+      return None
+    return play_encoded_hinted
+
+  #discards the hinted card according to the encoding
+  @staticmethod
+  def discard_encoded_hinted_factory(min_hints = 0):
+    def discard_encoded_hinted(observation):
+      if observation.information_tokens < min_hints:
+        return None
+      if observation.information_tokens == observation.parent_game.max_information_tokens:
+        return None
+      try:
+        last_move = observation.last_moves[0]
+        #print(observation.last_moves)
+        if str(last_move.move)[1] == 'R' and str(last_move.move)[18] == 'r':
+          card_index = str(last_move.move)[-2] - 1
+          return pyhanabi.HanabiMove(
+              pyhanabi.HanabiMove.Type.kDiscard,
+              card_index,
+              0,
+              pyhanabi.HanabiCard.ColorType.kUnknownColor,
+              pyhanabi.HanabiCard.RankType.kUnknownRank
+              )
+      except:
+        return None
+      return None
+    return discard_encoded_hinted
+
+  #some conditions for a filler rule
+  @staticmethod
+  def tell_randomly_fill(min_hints = 1, max_hints = 8, multiple_hint = False):
+    def tell_encoded_playable(observation):
+      if observation.information_tokens < min_hints:
+        return None
+      if observation.information_tokens > max_hints:
+        return None
+      if not multiple_hint:
+        try:
+          last_move = observation.last_moves[0]
+          if str(last_move.move)[1] == 'R':
+            return None
+        except:
+          pass
+      return Ruleset.tell_unknown(observation)
+      return None
+    return tell_encoded_playable

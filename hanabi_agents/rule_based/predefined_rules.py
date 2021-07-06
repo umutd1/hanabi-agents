@@ -163,9 +163,27 @@ small_rules = [
     Ruleset.discard_oldest_first
 ]
 
-test_rules = [    
-    Ruleset.play_probably_safe_factory(0.99,False),
-    Ruleset.legal_random
+test_rules = [
+    Ruleset.play_probably_safe_factory(0.9999, False),
+    Ruleset.play_encoded_hinted_factory(min_hints = 0),
+    Ruleset.discard_encoded_hinted_factory(min_hints = 1),
+    Ruleset.tell_encoded_playable_factory(min_hints = 1, max_hints = 7),
+    Ruleset.tell_encoded_discardable_factory(min_hints = 1),
+    Ruleset.discard_oldest_first,
+    Ruleset.tell_randomly
+]
+
+test2_rules =[
+    Ruleset.play_probably_safe_factory(0.9999, False),
+    Ruleset.discard_probably_useless_factory(0.99),
+    Ruleset.tell_encoded_discardable_factory(min_hints = 1, max_hints = 4, multiple_hint = False),
+    Ruleset.tell_randomly_fill(min_hints = 1, max_hints = 4, multiple_hint = False),
+    Ruleset.tell_encoded_playable_factory(min_hints=5, max_hints = 8, multiple_hint = False),
+    Ruleset.tell_randomly_fill(min_hints = 5, max_hints = 8, multiple_hint = False),
+    Ruleset.play_encoded_hinted_factory(min_hints = 0),
+    Ruleset.discard_encoded_hinted_factory(min_hints = 0),
+    Ruleset.tell_randomly,
+    Ruleset.discard_randomly
 ]
 
 
